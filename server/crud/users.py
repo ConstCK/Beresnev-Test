@@ -2,13 +2,14 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from database.db import get_db
+from database.redis import TokenRepository
 from models.models import User as UserTable
 from schemas.users import User, UserCreation
-from services.auth import get_password_hash, create_token, verify_password, validate_token
+from services.auth import (get_password_hash, create_access_token, create_refresh_token,
+                           verify_password, validate_refresh_token)
 
-
+repository = TokenRepository()
 class UserService:
     def __init__(self, session: AsyncSession = Depends(get_db)) -> None:
         self.db = session
@@ -41,8 +42,8 @@ class UserService:
         db_user = await self.db.execute(query)
         user = db_user.scalar()
 
-        access_token = create_token({'id': str(user.id)})
-        refresh_token = create_token({'id': str(user.id)}, token_type='refresh')
+        access_token = create_access_token({'id': str(user.id)})
+        refresh_token = await create_refresh_token({'id': str(user.id)})
         return {'message': 'Регистрация прошла успешно',
                 'user': user.username,
                 'access': access_token,
@@ -57,7 +58,6 @@ class UserService:
                 verify_password(plain_password=data.password,
                                 hashed_password=user.password) is False):
             return None
-
         return user
 
     # Логин по username и паролю
@@ -67,8 +67,8 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail='Неверное имя или пароль')
 
-        access_token = create_token({'id': str(db_user.id)})
-        refresh_token = create_token({'id': str(db_user.id)}, token_type='refresh')
+        access_token = create_access_token({'id': str(db_user.id)})
+        refresh_token = await create_refresh_token({'id': str(db_user.id)})
 
         return {'message': 'Успешный вход в систему',
                 'user': db_user.username,
@@ -77,8 +77,12 @@ class UserService:
 
     @staticmethod
     async def get_new_token(token: str) -> dict:
-        result = validate_token(token_type='refresh', token=token)
-        access_token = create_token({'id': str(result)})
-        refresh_token = create_token({'id': str(result)}, token_type='refresh')
-        return {'access': access_token,
-                'refresh': refresh_token}
+        try:
+            result = await validate_refresh_token(token=token)
+            access_token = create_access_token({'id': str(result)})
+            refresh_token = await create_refresh_token({'id': str(result)})
+            return {'access': access_token,
+                    'refresh': refresh_token}
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail='Ошибка при создании нового токена')

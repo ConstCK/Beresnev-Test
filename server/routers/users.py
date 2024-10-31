@@ -1,12 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, status, Depends, Response
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, status, Depends
+
 
 from crud.users import UserService
 from schemas.tokens import Token
-from schemas.users import User, UserCreation
-from services.auth import validate_token, create_token
+from schemas.users import UserCreation
+
 
 # Маршрут Регистрации и авторизации
 router = APIRouter(prefix='/api/v1/auth')

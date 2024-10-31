@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, status, Depends, Header
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, status, Depends
 
 from crud.tasks import TaskService
 from schemas.tasks import Task, TaskCreation
@@ -16,8 +15,8 @@ router = APIRouter(prefix='/api/v1/tasks')
             responses={200: {'description': 'Успешное получение объектов'},
                        }
             )
-async def get_tasks(task_status: str, service: Annotated[TaskService, Depends()],
-                    permission: Annotated[bool, Depends(access_granted)]):
+async def get_tasks(service: Annotated[TaskService, Depends()],
+                    permission: Annotated[bool, Depends(access_granted)], task_status: str = None,):
     if permission:
         result = await service.get_tasks(task_status)
         return result

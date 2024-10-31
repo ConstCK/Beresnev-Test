@@ -16,13 +16,15 @@ class TaskService:
         self.db = session
         self.user_id = user_id
 
-    # Получение всех задач
+    # Получение всех своих задач
     async def get_tasks(self, task_status: str = None) -> list[Task]:
-        if not status:
-            query = select(TaskTable)
+        if task_status is None:
+            query = select(TaskTable).where(TaskTable.user_id == int(self.user_id))
             result = await self.db.execute(query)
         else:
-            query = select(TaskTable).where(TaskTable.status == task_status)
+            query = (select(TaskTable)
+                     .where(TaskTable.status == task_status)
+                     .where(TaskTable.user_id == int(self.user_id)))
             result = await self.db.execute(query)
 
         return result.scalars().all()
@@ -43,10 +45,12 @@ class TaskService:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Ошибка при создании задачи.'
                                                                          ' Проверьте введенные данные.')
 
-    # Получение указанной задачи
+    # Получение своей указанной задачи
     async def get_task(self, task_id: int) -> Task:
         try:
-            query = select(TaskTable).where(TaskTable.id == task_id)
+            query = (select(TaskTable)
+                     .where(TaskTable.id == task_id)
+                     .where(TaskTable.user_id == int(self.user_id)))
             result = await self.db.execute(query)
             task = Task.model_validate(result.scalar())
             return task
@@ -58,7 +62,9 @@ class TaskService:
     async def update_task(self, task_id: int, data: TaskCreation) -> dict[str, str]:
 
         try:
-            query = select(TaskTable).where(TaskTable.id == task_id)
+            query = (select(TaskTable)
+                     .where(TaskTable.id == task_id)
+                     .where(TaskTable.user_id == int(self.user_id)))
             result = await self.db.execute(query)
             task = result.scalar()
             task.name = data.name
@@ -73,7 +79,9 @@ class TaskService:
     # Удаление указанной задачи
     async def delete_task(self, task_id: int) -> dict[str, str]:
         try:
-            query = select(TaskTable).where(TaskTable.id == task_id)
+            query = (select(TaskTable)
+                     .where(TaskTable.id == task_id)
+                     .where(TaskTable.user_id == int(self.user_id)))
             result = await self.db.execute(query)
             await self.db.delete(result.scalar())
             return {'message': f'Задача №{task_id} успешно удалена'}
