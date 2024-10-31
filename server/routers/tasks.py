@@ -28,7 +28,7 @@ async def get_tasks(service: Annotated[TaskService, Depends()],
 # Маршрут для создания задачи для авторизированных пользователей
 @router.post('/', description='Create task',
              response_model=Task,
-             status_code=status.HTTP_201_CREATED, name='task_creation',
+             status_code=status.HTTP_201_CREATED, name='task_creation_url',
              responses={201: {'description': 'Успешное создание объекта'},
                         409: {'description': 'Объект уже существует'},
                         422: {'description': 'Ошибка валидации данных'}}
@@ -44,7 +44,7 @@ async def post_note(data: TaskCreation, permission: Annotated[bool, Depends(acce
 
 # Маршрут для удаления указанной задачи для авторизированных пользователей
 @router.delete('/{task_id}', description='Delete task',
-               status_code=status.HTTP_201_CREATED, name='task_deletion',
+               status_code=status.HTTP_201_CREATED, name='task_deletion_url',
                responses={201: {'description': 'Успешное удаление объекта'},
                           404: {'description': 'Объект не найден'},
                           }
@@ -60,7 +60,7 @@ async def delete_note(task_id: int, permission: Annotated[bool, Depends(access_g
 
 # Маршрут для изменения задачи для авторизированных пользователей
 @router.put('/{task_id}', description='Update task',
-            status_code=status.HTTP_200_OK, name='task_updating',
+            status_code=status.HTTP_200_OK, name='task_updating_url',
             responses={200: {'description': 'Успешное изменение объекта'},
                        404: {'description': 'Объект не найден'},
                        422: {'description': 'Ошибка валидации данных'}
@@ -78,7 +78,7 @@ async def update_note(task_id: int, data: TaskCreation, permission: Annotated[bo
 # Маршрут для получения указанной задачи для авторизированных пользователей
 @router.get('/{task_id}', description='Get task',
             response_model=Task,
-            status_code=status.HTTP_200_OK, name='task_getting',
+            status_code=status.HTTP_200_OK, name='task_getting_url',
             responses={200: {'description': 'Успешное получение объекта'},
                        404: {'description': 'Объект не найден'},
                        }
