@@ -53,8 +53,6 @@ def validate_token(token: str, token_type: str = 'access') -> str:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Токен не валидный!')
 
 
-def access_granted(request: Request,
-                   token: Annotated[str, Header()],
-                   ) -> bool:
+def access_granted(token: Annotated[str, Header()],) -> str | None:
     result = validate_token(token)
-    return True if result else False
+    return result if result else None

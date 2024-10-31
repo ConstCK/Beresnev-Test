@@ -1,15 +1,20 @@
-from fastapi import Depends, HTTPException, status
+from typing import Annotated
+
+from fastapi import Depends, HTTPException, status, Request, Header
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db import get_db
 from schemas.tasks import Task, TaskCreation
 from models.models import Task as TaskTable
+from services.auth import access_granted
 
 
 class TaskService:
-    def __init__(self, session: AsyncSession = Depends(get_db)) -> None:
+    def __init__(self, user_id: Annotated[str | None, Depends(access_granted)],
+                 session: Annotated[AsyncSession, Depends(get_db)], ) -> None:
         self.db = session
+        self.user_id = user_id
 
     # Получение всех задач
     async def get_tasks(self, task_status: str = None) -> list[Task]:
@@ -23,9 +28,11 @@ class TaskService:
         return result.scalars().all()
 
     # Создание задачи
-    async def create_task(self, data: TaskCreation) -> Task:
+    async def create_task(self, data: TaskCreation, ) -> Task:
         try:
-            query = insert(TaskTable).values(**data.model_dump()).returning(TaskTable)
+            values = {'name': data.name, 'description': data.description, 'status': data.status,
+                      'user_id': int(self.user_id)}
+            query = insert(TaskTable).values(values).returning(TaskTable)
             result = await self.db.execute(query)
             await self.db.flush()
             result = Task.model_validate(result.scalar())
@@ -48,10 +55,10 @@ class TaskService:
                 status_code=status.HTTP_404_NOT_FOUND, detail='Объект не существует')
 
     # Изменение указанной задачи
-    async def update_task(self, task_id: int, data: TaskCreation, ) -> dict[str, str]:
+    async def update_task(self, task_id: int, data: TaskCreation) -> dict[str, str]:
+
         try:
             query = select(TaskTable).where(TaskTable.id == task_id)
-
             result = await self.db.execute(query)
             task = result.scalar()
             task.name = data.name

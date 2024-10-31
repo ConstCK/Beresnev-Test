@@ -10,6 +10,7 @@ class BaseTask(BaseModel):
 
 class Task(BaseTask):
     id: int
+    user_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
