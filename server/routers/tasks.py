@@ -6,6 +6,7 @@ from crud.tasks import TaskService
 from schemas.tasks import Task, TaskCreation
 from services.auth import access_granted
 
+# Маршрут для действий з задачами
 router = APIRouter(prefix='/api/v1/tasks')
 
 
@@ -41,7 +42,7 @@ async def post_note(data: TaskCreation, permission: Annotated[bool, Depends(acce
         return {'message': 'Авторизуйтесь для добавления данных'}
 
 
-# Маршрут для создания задачи для авторизированных пользователей
+# Маршрут для удаления указанной задачи для авторизированных пользователей
 @router.delete('/{task_id}', description='Delete task',
                status_code=status.HTTP_201_CREATED, name='task_deletion',
                responses={201: {'description': 'Успешное удаление объекта'},

@@ -12,7 +12,7 @@ from schemas.users import UserCreation
 router = APIRouter(prefix='/api/v1/auth')
 
 
-# Маршрут для регистрации нового пользователя (с использованием cookies)
+# Маршрут для регистрации нового пользователя с получением токенов
 @router.post('/register', description='Registration',
              status_code=status.HTTP_201_CREATED, name='user_registration',
              responses={201: {'description': 'Успешная регистрация'},
@@ -23,7 +23,7 @@ async def signup(data: UserCreation, service: Annotated[UserService, Depends()])
     return result
 
 
-# Вход в систему при использовании username&password (с получением token)
+# Вход в систему при использовании username&password с получением токенов
 @router.post('/login', description='Authorization',
              status_code=status.HTTP_200_OK, name='user_authorization_by_username',
              responses={200: {'description': 'Успешное авторизация'},

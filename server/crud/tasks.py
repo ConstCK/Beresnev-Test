@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status, Request, Header
+from fastapi import Depends, HTTPException, status
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -60,7 +60,6 @@ class TaskService:
 
     # Изменение указанной задачи
     async def update_task(self, task_id: int, data: TaskCreation) -> dict[str, str]:
-
         try:
             query = (select(TaskTable)
                      .where(TaskTable.id == task_id)

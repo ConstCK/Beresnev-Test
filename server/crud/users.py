@@ -10,6 +10,8 @@ from services.auth import (get_password_hash, create_access_token, create_refres
                            verify_password, validate_refresh_token)
 
 repository = TokenRepository()
+
+
 class UserService:
     def __init__(self, session: AsyncSession = Depends(get_db)) -> None:
         self.db = session
@@ -32,9 +34,7 @@ class UserService:
 
         hashed_password = get_password_hash(data.password)
         db_user = UserTable(username=data.username,
-                            password=hashed_password,
-                            )
-
+                            password=hashed_password)
         self.db.add(db_user)
         await self.db.commit()
         await self.db.refresh(db_user)
@@ -42,8 +42,10 @@ class UserService:
         db_user = await self.db.execute(query)
         user = db_user.scalar()
 
+        # Создание токенов для зарегистрированного пользователя
         access_token = create_access_token({'id': str(user.id)})
         refresh_token = await create_refresh_token({'id': str(user.id)})
+
         return {'message': 'Регистрация прошла успешно',
                 'user': user.username,
                 'access': access_token,
@@ -67,6 +69,7 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail='Неверное имя или пароль')
 
+        # Создание токенов для зарегистрированного пользователя
         access_token = create_access_token({'id': str(db_user.id)})
         refresh_token = await create_refresh_token({'id': str(db_user.id)})
 
@@ -75,6 +78,7 @@ class UserService:
                 'access': access_token,
                 'refresh': refresh_token}
 
+    # Выпуск новых токенов, используя refresh token
     @staticmethod
     async def get_new_token(token: str) -> dict:
         try:
