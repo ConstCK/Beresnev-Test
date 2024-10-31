@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     db_url: str = (f"postgresql+asyncpg://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
                    f"@{os.getenv('DB_HOST')}:5432/{os.getenv('DB_NAME')}")
 
-    host: str = 'localhost'
+    host: str = '0.0.0.0'
 
     # Данные для использования токен-авторизации
     secret_key: str = os.getenv('JWT_SECRET_KEY')
